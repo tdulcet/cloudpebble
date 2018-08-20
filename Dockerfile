@@ -1,7 +1,7 @@
 FROM python:2.7.11
-MAINTAINER Katharine Berry <katharine@pebble.com>
+MAINTAINER Katharine Berry <katharine@kathar.in>
 
-ENV NPM_CONFIG_LOGLEVEL=info NODE_VERSION=4.2.3 DJANGO_VERSION=1.6
+ENV NPM_CONFIG_LOGLEVEL=info NODE_VERSION=8.11.4 DJANGO_VERSION=1.6
 
 # Node stuff.
 
@@ -52,15 +52,15 @@ ENV SDK_TWO_VERSION=2.9
 
 # Install SDK 2
 RUN mkdir /sdk2 && \
-  curl -L "https://s3.amazonaws.com/assets.getpebble.com/sdk3/sdk-core/sdk-core-${SDK_TWO_VERSION}.tar.bz2" | \
+  curl -L "https://binaries.rebble.io/sdk-core/release/sdk-core-${SDK_TWO_VERSION}.tar.bz2" | \
   tar --strip-components=1 -xj -C /sdk2
 
-ENV SDK_THREE_CHANNEL=beta
-ENV SDK_THREE_VERSION=4.0-beta16
+ENV SDK_THREE_CHANNEL=release
+ENV SDK_THREE_VERSION=4.3
 
 # Install SDK 3
 RUN mkdir /sdk3 && \
-  curl -L "https://s3.amazonaws.com/assets.getpebble.com/sdk3/${SDK_THREE_CHANNEL}/sdk-core-${SDK_THREE_VERSION}.tar.bz2" | \
+  curl -L "https://binaries.rebble.io/sdk-core/${SDK_THREE_CHANNEL}/sdk-core-${SDK_THREE_VERSION}.tar.bz2" | \
   tar --strip-components=1 -xj -C /sdk3
 
 COPY . /code
@@ -69,7 +69,7 @@ WORKDIR /code
 # Bower is awful.
 RUN rm -rf bower_components && cd /tmp && python /code/manage.py bower install && mv bower_components /code/
 
-RUN python manage.py compilemessages
+RUN python manage.py compilemessages && python manage.py collectstatic --noinput
 
 RUN make -C /code/c-preload
 
