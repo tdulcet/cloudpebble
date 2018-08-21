@@ -40,7 +40,7 @@ spec:
     spec:
       containers:
       -  name: cloudpebble-frontend
-         image: gcr.io/cloudrebble-k8s/cloudpebble:0.0.1
+         image: gcr.io/cloudrebble-k8s/cloudpebble:0.0.2
          command: ["gunicorn", "-c", "gunicorn.py", "cloudpebble.wsgi"]
          ports:
          - containerPort: 8080
@@ -110,7 +110,7 @@ spec:
     spec:
       containers:
       -  name: cloudpebble-worker
-         image: gcr.io/cloudrebble-k8s/cloudpebble:0.0.1
+         image: gcr.io/cloudrebble-k8s/cloudpebble:0.0.2
          command: ["python", "manage.py", "celeryd", "-E", "-l", "info"]
          env:
          - name: REDIS_URL

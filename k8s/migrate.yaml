@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cloudpebble-migration
+spec:
+  template:
+    spec:
+      containers:
+      -  name: cloudpebble-migration
+         image: gcr.io/cloudrebble-k8s/cloudpebble:0.0.2
+         command: ["/bin/sh", "migrate.sh"]
+         env:
+         - name: DATABASE_URL
+           valueFrom:
+            secretKeyRef:
+              name: cloudpebble-db-url
+              key: url
+      - name: frontend-cloudsql-proxy
+        image: gcr.io/cloudsql-docker/gce-proxy:1.11
+        command: ["/cloud_sql_proxy",
+                  "-instances=cloudrebble-k8s:us-central1:cloudpebble-db=tcp:5432",
+                  "-credential_file=/secrets/cloudsql/cloudrebble-k8s-511ff76c5b00.json"]
+        volumeMounts:
+          - name: cloudsql-instance-credentials
+            mountPath: /secrets/cloudsql
+            readOnly: true
+      volumes:
+        - name: cloudsql-instance-credentials
+          secret:
+            secretName: cloudsql-instance-credentials
+      restartPolicy: OnFailure
