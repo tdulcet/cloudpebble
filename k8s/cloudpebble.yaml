@@ -11,6 +11,23 @@ spec:
     port: 23451
     targetPort: 8080
 ---
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: cloud-rebble-io
+spec:
+  secretName: cloud-rebble-com-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: cloud.rebble.io
+  acme:
+    config:
+    - dns01:
+        provider: cloudflare-dns
+      domains:
+      - cloud.rebble.io
+---
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -18,6 +35,8 @@ metadata:
   annotations:
     kubernetes.io/ingress.global-static-ip-name: cloudpebble-frontend-ip
 spec:
+  tls:
+  - secretName: cloud-rebble-com-tls
   backend:
     serviceName: cloudpebble-frontend
     servicePort: 23451
@@ -40,7 +59,7 @@ spec:
     spec:
       containers:
       -  name: cloudpebble-frontend
-         image: gcr.io/cloudrebble-k8s/cloudpebble:0.0.2
+         image: gcr.io/cloudrebble-k8s/cloudpebble:0.0.3
          command: ["gunicorn", "-c", "gunicorn.py", "cloudpebble.wsgi"]
          ports:
          - containerPort: 8080
@@ -78,6 +97,28 @@ spec:
             secretKeyRef:
               name: cloudpebble-db-url
               key: url
+         - name: GITHUB_ID
+           valueFrom:
+            secretKeyRef:
+              name: github-token
+              key: id
+         - name: GITHUB_SECRET
+           valueFrom:
+            secretKeyRef:
+              name: github-token
+              key: secret
+         - name: PEBBLE_AUTH_URL
+           value: https://auth.rebble.io
+         - name: PEBBLE_AUTH_KEY
+           valueFrom:
+            secretKeyRef:
+              name: rebble-auth-keys
+              key: id
+         - name: PEBBLE_AUTH_SECRET
+           valueFrom:
+            secretKeyRef:
+              name: rebble-auth-keys
+              key: secret
       - name: frontend-cloudsql-proxy
         image: gcr.io/cloudsql-docker/gce-proxy:1.11
         command: ["/cloud_sql_proxy",
@@ -110,7 +151,7 @@ spec:
     spec:
       containers:
       -  name: cloudpebble-worker
-         image: gcr.io/cloudrebble-k8s/cloudpebble:0.0.2
+         image: gcr.io/cloudrebble-k8s/cloudpebble:0.0.3
          command: ["python", "manage.py", "celeryd", "-E", "-l", "info"]
          env:
          - name: REDIS_URL
@@ -140,6 +181,28 @@ spec:
             secretKeyRef:
               name: cloudpebble-db-url
               key: url
+         - name: GITHUB_ID
+           valueFrom:
+            secretKeyRef:
+              name: github-token
+              key: id
+         - name: GITHUB_SECRET
+           valueFrom:
+            secretKeyRef:
+              name: github-token
+              key: secret
+         - name: PEBBLE_AUTH_URL
+           value: https://auth.rebble.io
+         - name: PEBBLE_AUTH_KEY
+           valueFrom:
+            secretKeyRef:
+              name: rebble-auth-keys
+              key: id
+         - name: PEBBLE_AUTH_SECRET
+           valueFrom:
+            secretKeyRef:
+              name: rebble-auth-keys
+              key: secret
          - name: C_FORCE_ROOT
            value: "1"
       - name: frontend-cloudsql-proxy

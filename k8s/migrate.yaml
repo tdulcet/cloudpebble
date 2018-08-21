@@ -7,7 +7,7 @@ spec:
     spec:
       containers:
       -  name: cloudpebble-migration
-         image: gcr.io/cloudrebble-k8s/cloudpebble:0.0.2
+         image: gcr.io/cloudrebble-k8s/cloudpebble:0.0.3
          command: ["/bin/sh", "migrate.sh"]
          env:
          - name: DATABASE_URL
