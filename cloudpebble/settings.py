@@ -247,9 +247,9 @@ INSTALLED_APPS = (
     'site_auth',
     'root',
     'qr',
-    'south',
+    # 'south',
     'djcelery',
-    'registration',
+    # 'registration',
     'djangobower',
 )
 
