@@ -1,29 +1,53 @@
 #!/usr/bin/env bash
 
-echo "Replacing ubuntu mirrors with ones that suck less."
-sudo sed -i -e 's#archive.ubuntu.com#mirrors.mit.edu#g' /etc/apt/sources.list
+# sudo ./bootstrap.sh
+
+set -e
+
+if [[ $# -ne 0 ]]; then
+	echo "Usage: sudo $0" >&2
+	exit 1
+fi
+
+# Check if user is root
+if [[ $EUID -ne 0 ]]; then
+	echo -e "Error: This script must be run as root, please run this script again with the root user or sudo." >&2
+	exit 1
+fi
+
+# Check if on Linux
+if ! echo "$OSTYPE" | grep -iq "linux"; then
+	echo "Error: This script must be run on Linux." >&2
+	exit 1
+fi
+
+set -x
+
+# echo "Replacing ubuntu mirrors with ones that suck less."
+# sudo sed -i -e 's#archive.ubuntu.com#mirrors.mit.edu#g' /etc/apt/sources.list
 
 
 # Install a bunch of things we want
 apt-get update
-apt-get install -y aptitude
-aptitude install -y python-pip mercurial git python-dev python-psycopg2 rabbitmq-server libmpc libevent-dev lighttpd \
-                        python-software-properties cmake build-essential \
-                        pkg-config libgnutls-dev libglib2.0-dev libpixman-1-dev libfdt-dev libev-dev
+apt-get dist-upgrade -y
+# apt-get install -y aptitude
+apt-get install -y python-pip mercurial git python-dev libpq-dev python-psycopg2 rabbitmq-server libevent-dev lighttpd \
+                        software-properties-common cmake build-essential \
+                        pkg-config libglib2.0-dev libpixman-1-dev libfdt-dev libev-dev
 
 # We need a more recent redis than Ubuntu provides.
-add-apt-repository -y ppa:chris-lea/redis-server
+# add-apt-repository -y ppa:chris-lea/redis-server
 
 # Install node for jshint
-aptitude install -y g++ make
-add-apt-repository -y ppa:chris-lea/node.js
-apt-get update
-aptitude install -y nodejs
+apt-get install -y g++ make
+# add-apt-repository -y ppa:chris-lea/node.js
+# apt-get update
+apt-get install -y nodejs
 npm install -g jshint
 npm install -g bower
 
 # Install redis
-aptitude install -y redis-server
+apt-get install -y redis-server
 
 # Make our static server useful.
 ln -s /vagrant/user_data/build_results /var/www/builds 
@@ -46,15 +70,15 @@ pushd /vagrant
 popd
 
 # We'll need this later
-wget --progress=bar:force -O arm-cs-tools.tar.bz2 http://assets.getpebble.com.s3-website-us-east-1.amazonaws.com/sdk/arm-cs-tools-ubuntu-universal.tar.gz
-sudo -u vagrant tar -xzf arm-cs-tools.tar.bz2
+wget --progress=bar:force -O arm-cs-tools.tar.bz2 https://cloudpebble-vagrant.s3.amazonaws.com/arm-cs-tools-stripped.tar
+sudo -u vagrant tar -xf arm-cs-tools.tar.bz2
 rm arm-cs-tools.tar.bz2
 
 # Obtain SDK2.
 sudo -u vagrant mkdir sdk2
 pushd sdk2
-    wget --progress=bar:force -O sdk.tar.gz https://sdk.getpebble.com/download/2.8.1?source=cloudpebble
-    sudo -u vagrant tar --strip 1 -xzf sdk.tar.gz
+    wget --progress=bar:force -O sdk.tar.gz https://binaries.rebble.io/sdk-core/release/sdk-core-2.9.tar.bz2
+    sudo -u vagrant tar --strip 1 -xj sdk.tar.gz
     rm sdk.tar.gz
     sudo -u vagrant ln -s ~/arm-cs-tools arm-cs-tools
     pip install -r requirements.txt
@@ -63,8 +87,8 @@ popd
 # Obtain SDK3.
 sudo -u vagrant mkdir sdk3
 pushd sdk3
-    wget --progress=bar:force -O sdk.tar.gz https://s3.amazonaws.com/assets.getpebble.com/sdk3/release/sdk-core-3.8.1.tar.bz2
-    sudo -u vagrant tar --strip 1 -xzf sdk.tar.gz
+    wget --progress=bar:force -O sdk.tar.gz https://binaries.rebble.io/sdk-core/release/sdk-core-4.3.tar.bz2
+    sudo -u vagrant tar --strip 1 -xj sdk.tar.gz
     rm sdk.tar.gz
     sudo -u vagrant ln -s ~/arm-cs-tools arm-cs-tools
     pip install -r requirements.txt

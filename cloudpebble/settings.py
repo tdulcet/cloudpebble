@@ -244,7 +244,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     'social.apps.django_app.default',
     'ide',
-    'auth',
+    'site_auth',
     'root',
     'qr',
     'south',
